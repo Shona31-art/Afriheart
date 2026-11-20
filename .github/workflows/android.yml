@@ -1,0 +1,78 @@
+# Builds Afriheart's Android app and publishes it as a GitHub release, so
+# https://github.com/<owner>/<repo>/releases/latest/download/afriheart.apk always
+# gives the newest version. Runs when android/ changes, or by hand
+# (Actions → Android app → Run workflow). Adapted from Grace's workflow.
+#
+# Needs:
+#   secret   ANDROID_KEYSTORE_PASSWORD  unlocks android/common-release.p12 (never lose it)
+#   variable AFRIHEART_SITE_URL         the live website, e.g. https://afriheart.example.com
+name: Android app
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "android/**"
+      - ".github/workflows/android.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-app
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      HAS_KEY: ${{ secrets.ANDROID_KEYSTORE_PASSWORD != '' }}
+      SITE_URL: ${{ vars.AFRIHEART_SITE_URL || vars.COMMON_SITE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.11.1"
+
+      - name: Check settings
+        run: |
+          if [ -z "$SITE_URL" ]; then
+            echo "::error::Set the repository variable AFRIHEART_SITE_URL (Settings → Secrets and variables → Actions → Variables) to your live site, e.g. https://afriheart.example.com"
+            exit 1
+          fi
+          if [ "$HAS_KEY" != "true" ]; then
+            echo "::warning::ANDROID_KEYSTORE_PASSWORD isn't set: building a test copy that won't be published."
+          fi
+
+      - name: Build the app
+        working-directory: android
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: gradle --no-daemon assembleRelease -PcommonVersionCode=${{ github.run_number }} -PcommonSiteUrl="$SITE_URL"
+
+      - name: Name the file
+        run: cp android/app/build/outputs/apk/release/app-release.apk afriheart.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: afriheart-apk
+          path: afriheart.apk
+
+      - name: Publish the download
+        if: ${{ env.HAS_KEY == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="android-${{ github.run_number }}"
+          gh release create "$tag" afriheart.apk \
+            --title "Afriheart for Android (version 1.0.${{ github.run_number }})" \
+            --notes "Install on Android: download afriheart.apk and open it. Updates install over the old version; your sign-in stays." \
+            --latest

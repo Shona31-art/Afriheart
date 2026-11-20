@@ -1,0 +1,267 @@
+@import "tailwindcss";
+
+:root {
+  /* Malachite and gold: deep green from the Southern African gemstone, porcelain white, and gold
+     used only for fine details. Every text pair keeps 4.5:1 or better. */
+  --paper: #f2f3ef;          /* porcelain */
+  --card: #ffffff;
+  --ink: #0f1f1b;            /* green-black */
+  --muted: #5a6763;          /* 5.3:1 on paper */
+  --line: #e1e4df;
+  --hair: rgba(15, 31, 27, 0.07);
+  --accent: #0e3b34;         /* malachite */
+  --accent-ink: #ffffff;
+  --accent-soft: #e4ece8;
+  --gold: #a9864f;           /* details only (hairlines, markers), never small text on light */
+  --gold-ink: #7a5c2c;       /* gold text on gold-soft: 5.3:1 */
+  --gold-soft: #f3ecdf;
+  --warm: #b5532f;
+  --warm-soft: #f7e6dd;
+  --warm-ink: #8e3a1b;
+  --live: #1d7d45;
+  --brand: #0e3b34;          /* chat header, plan card header: always white text */
+  --notice: #f4eedf;
+  --notice-ink: #5b5446;
+  --danger: #b42318;
+  --chat: #eceee9;
+  --chat-dot: rgba(14, 59, 52, 0.06);
+  --bubble-me: #dce9e3;
+  --read: #2b8fd6;
+  --s-suggested: #eceee9;
+  --s-authorised-bg: #e4e7f6;
+  --s-authorised: #3a4a9a;
+  --s-failed-bg: #f8dcdc;
+  --s-failed: #a12b2b;
+  --shadow: 0 1px 2px rgba(15, 31, 27, 0.04), 0 10px 28px -14px rgba(15, 31, 27, 0.18);
+  --shadow-lift: 0 2px 6px rgba(15, 31, 27, 0.06), 0 22px 48px -20px rgba(15, 31, 27, 0.32);
+  color-scheme: light;
+}
+
+/* Dark mode is the evening look: near-black malachite with champagne gold. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #0a1513;
+    --card: #111e1b;
+    --ink: #edeee8;
+    --muted: #9da9a4;
+    --line: #22312d;
+    --hair: rgba(214, 183, 126, 0.12);
+    --accent: #d6b77e;       /* champagne */
+    --accent-ink: #17120a;
+    --accent-soft: #2a261c;
+    --gold: #d6b77e;
+    --gold-ink: #e2c995;
+    --gold-soft: #2a261c;
+    --warm: #ef8a5f;
+    --warm-soft: #3a241b;
+    --warm-ink: #f4b195;
+    --live: #1d7d45;
+    --brand: #0e2e29;
+    --notice: #231f15;
+    --notice-ink: #e8dcc0;
+    --danger: #ff8a80;
+    --chat: #071110;
+    --chat-dot: rgba(214, 183, 126, 0.05);
+    --bubble-me: #183530;
+    --read: #53bdeb;
+    --s-suggested: #1f2b28;
+    --s-authorised-bg: #252c47;
+    --s-authorised: #aab8ff;
+    --s-failed-bg: #432020;
+    --s-failed: #ffaaa3;
+    --shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 12px 30px -16px rgba(0, 0, 0, 0.7);
+    --shadow-lift: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 24px 50px -20px rgba(0, 0, 0, 0.85);
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-warm: var(--warm);
+  --color-warm-soft: var(--warm-soft);
+  --color-warm-ink: var(--warm-ink);
+  --color-accent-ink: var(--accent-ink);
+  --color-brand: var(--brand);
+  --color-notice: var(--notice);
+  --color-notice-ink: var(--notice-ink);
+  --color-danger: var(--danger);
+  --color-live: var(--live);
+  --color-gold: var(--gold);
+  --color-gold-ink: var(--gold-ink);
+  --color-gold-soft: var(--gold-soft);
+  --font-sans: var(--sans);
+  --font-serif: var(--serif);
+}
+
+/* Hanken Grotesk for reading and controls; Bodoni Moda, a fashion-magazine serif, for names and titles.
+   (Plain custom properties: "@theme inline" values aren't written out as variables.) */
+:root {
+  --sans: var(--font-hanken), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --serif: var(--font-bodoni), Didot, "Iowan Old Style", Georgia, serif;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "ss01", "cv11";
+}
+
+/* Display type: Bodoni at its large optical size, a touch tighter, never bolder than medium. */
+.display { font-family: var(--serif); font-weight: 500; letter-spacing: -0.02em; font-optical-sizing: auto; }
+h1.display, .display.text-3xl, .display.text-4xl { line-height: 1.05; }
+/* Bodoni's hairlines get too fine when small: smaller display text is set a little heavier. */
+.display:is(.text-xs, .text-sm, .text-base, .text-lg, .text-xl, .text-\[1\.2rem\], .text-\[1\.25rem\], .text-\[1\.35rem\]) { font-weight: 600; letter-spacing: -0.01em; }
+::selection { background: color-mix(in srgb, var(--gold) 35%, transparent); }
+
+/* Component classes sit in the components layer, so Tailwind utilities on an element can override them. */
+@layer components {
+.card {
+  background: var(--card);
+  border: 1px solid var(--hair);
+  border-radius: 20px;
+  padding: 1.1rem 1.2rem;
+  box-shadow: var(--shadow);
+}
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .45rem;
+  min-height: 2.75rem; border-radius: 999px; padding: .65rem 1.25rem;
+  font-weight: 600; font-size: .95rem; letter-spacing: .01em;
+  background: var(--accent); color: var(--accent-ink); border: 1px solid var(--accent);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .12) inset, 0 8px 18px -10px color-mix(in srgb, var(--accent) 70%, transparent);
+  transition: transform .1s ease, box-shadow .2s ease, opacity .15s ease; cursor: pointer; white-space: nowrap;
+}
+.btn:active { transform: scale(.98); }
+.btn:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
+.btn-ghost { background: var(--card); color: var(--ink); border-color: var(--line); box-shadow: none; }
+.btn-warm { background: var(--warm-ink); border-color: var(--warm-ink); }
+.btn-sm { min-height: 2.25rem; padding: .4rem .95rem; font-size: .875rem; }
+
+.chip {
+  display: inline-flex; align-items: center; gap: .4rem; border-radius: 999px;
+  padding: .35rem .85rem; font-size: .875rem; border: 1px solid var(--line); background: var(--card); color: var(--ink);
+}
+.chip-on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+
+.field {
+  width: 100%; border-radius: 14px; border: 1px solid var(--line); background: var(--card);
+  padding: .75rem .95rem; font-size: 1rem; color: var(--ink);
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.field::placeholder { color: color-mix(in srgb, var(--muted) 85%, transparent); }
+.field:focus { border-color: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 14%, transparent); outline: none; }
+.btn:focus-visible, .chip:focus-visible, a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Small labels: sentence case, quiet, no shouting. */
+.label { font-size: .85rem; letter-spacing: 0; color: var(--muted); font-weight: 600; }
+
+.status { font-size: .75rem; font-weight: 600; letter-spacing: .01em; border-radius: 999px; padding: .12rem .55rem; display: inline-block; }
+.status-suggested { background: var(--s-suggested); color: var(--muted); }
+.status-prepared { background: var(--warm-soft); color: var(--warm-ink); }
+.status-authorised { background: var(--s-authorised-bg); color: var(--s-authorised); }
+.status-done { background: var(--accent-soft); color: var(--accent); }
+.status-failed { background: var(--s-failed-bg); color: var(--s-failed); }
+
+/* A fine gold frame: the signature detail (profile portraits, the match screen). */
+.gilt-frame { position: absolute; inset: 10px; border: 1px solid color-mix(in srgb, var(--gold) 70%, transparent); border-radius: 22px; pointer-events: none; }
+}
+
+.page { display: flex; flex-direction: column; flex: 1; padding: 1.5rem 1rem 7rem; }
+
+/* Chat */
+.chat-bg {
+  background-color: var(--chat);
+  background-image: url("/doodle-light.svg");
+  background-size: 360px 360px;
+}
+@media (prefers-color-scheme: dark) { .chat-bg { background-image: url("/doodle-dark.svg"); } }
+/* Wallpapers and bubble colours (Chat theme), chosen per chat on the phone. */
+.chat-bg[data-wall="dots"] { background-image: radial-gradient(var(--chat-dot) 1px, transparent 1px); background-size: 18px 18px; }
+.chat-bg[data-wall="plain"] { background-image: none; }
+.chat-bg[data-wall="sand"] { background-color: #efe4d2; }
+.chat-bg[data-wall="sage"] { background-color: #d9e4d6; }
+.chat-bg[data-wall="sky"] { background-color: #d6e3ec; }
+.chat-bg[data-wall="blush"] { background-color: #f0dcdc; }
+.chat-bg[data-wall="night"] { background-color: #141b19; background-image: url("/doodle-dark.svg"); }
+@media (prefers-color-scheme: dark) {
+  .chat-bg[data-wall="sand"] { background-color: #241f17; }
+  .chat-bg[data-wall="sage"] { background-color: #18211a; }
+  .chat-bg[data-wall="sky"] { background-color: #141d24; }
+  .chat-bg[data-wall="blush"] { background-color: #241819; }
+}
+[data-bubbles="clay"] { --bubble-me: #fbe9e3; }
+[data-bubbles="ochre"] { --bubble-me: #fbecc7; }
+[data-bubbles="plum"] { --bubble-me: #efe9f6; }
+[data-bubbles="ocean"] { --bubble-me: #e4eef7; }
+@media (prefers-color-scheme: dark) {
+  [data-bubbles="clay"] { --bubble-me: #4a2a22; }
+  [data-bubbles="ochre"] { --bubble-me: #43351a; }
+  [data-bubbles="plum"] { --bubble-me: #352a45; }
+  [data-bubbles="ocean"] { --bubble-me: #1d3446; }
+}
+.bubble { max-width: 82%; border-radius: 16px; padding: .45rem .7rem .35rem; box-shadow: 0 1px 1px rgba(15,31,27,.06); word-wrap: break-word; white-space: pre-wrap; }
+.bubble-me { background: var(--bubble-me); border-top-right-radius: 4px; margin-left: auto; }
+.bubble-them { background: var(--card); border-top-left-radius: 4px; }
+.tick { font-size: .72rem; letter-spacing: -.18em; color: var(--muted); }
+.tick-read { color: var(--read); }
+
+@layer components {
+.icon-btn { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; border-radius: 999px; }
+.icon-btn:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+}
+svg { flex-shrink: 0; }
+
+/* Alphabet date ideas album: printed-paper colours, like a real book, in light and dark mode.
+   Four looks; the PDF uses the same colours (src/lib/album.ts THEMES). */
+.album, .album[data-look="cream"] {
+  --album-paper: #fbf6ec; --album-ink: #2b2520; --album-soft: #6f6457; --album-green: #0e5a52;
+  --album-rose: #b5485d; --album-rose2: #d98a9a; --album-rule: #e6dccb; --album-blank: #f1ebdf; --album-dash: #cbbfa9; --album-tape: rgba(181, 72, 93, .28);
+}
+.album[data-look="floral"] {
+  --album-paper: #fdf1f1; --album-ink: #3a2a2e; --album-soft: #7a5a62; --album-green: #a23b5a;
+  --album-rose: #b84a66; --album-rose2: #e79aab; --album-rule: #efd3d6; --album-blank: #f8e4e6; --album-dash: #e0b4bb; --album-tape: rgba(140, 170, 140, .35);
+}
+.album[data-look="midnight"] {
+  --album-paper: #1c2333; --album-ink: #f4ead7; --album-soft: #c9bda6; --album-green: #e2b65c;
+  --album-rose: #f08da0; --album-rose2: #e2b65c; --album-rule: #3a4560; --album-blank: #2a3347; --album-dash: #56627e; --album-tape: rgba(226, 182, 92, .45);
+}
+.album[data-look="sunny"] {
+  --album-paper: #fff8e1; --album-ink: #2a2a2a; --album-soft: #6b5d3f; --album-green: #b8400b;
+  --album-rose: #c92a63; --album-rose2: #0f9d8a; --album-rule: #f1dca0; --album-blank: #fdeec0; --album-dash: #e5c66f; --album-tape: rgba(15, 157, 138, .35);
+}
+.album-paper {
+  position: relative;
+  background: var(--album-paper); color: var(--album-ink);
+  border-radius: 6px 18px 18px 6px;
+  box-shadow: inset 10px 0 14px -12px rgba(60, 40, 20, .35), 0 1px 2px rgba(60, 40, 20, .12), 0 10px 24px -14px rgba(60, 40, 20, .35);
+}
+.font-script { font-family: "Dancing Script", cursive; font-weight: 600; }
+.font-hand { font-family: Caveat, cursive; font-weight: 500; }
+.polaroid { position: relative; background: #fff; padding: .7rem .7rem 2.6rem; box-shadow: 0 10px 22px -10px rgba(0, 0, 0, .45); }
+.polaroid-tape { position: absolute; top: -.8rem; left: 50%; width: 5.5rem; height: 1.6rem; transform: translateX(-50%) rotate(-4deg); background: var(--album-tape); }
+.album-lines { background-image: repeating-linear-gradient(to bottom, transparent 0, transparent calc(2.25rem - 2px), var(--album-rule) calc(2.25rem - 2px), var(--album-rule) 2.25rem); min-height: 6.75rem; }
+.album-paper .btn-ghost { color: var(--album-ink); border-color: var(--album-dash); background: transparent; }
+
+/* Privacy policy and terms */
+.legal h2 { font-family: var(--serif); font-size: 1.35rem; font-weight: 600; margin: 1.75rem 0 .5rem; }
+.legal p, .legal li { line-height: 1.6; }
+.legal p { margin: .5rem 0; }
+.legal ul { list-style: disc; padding-left: 1.25rem; margin: .5rem 0; display: flex; flex-direction: column; gap: .35rem; }
+.legal a { color: var(--accent); font-weight: 600; text-decoration: underline; }
+
+/* A quoted or searched-for message lights up briefly when jumped to. */
+.msg-flash { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+/* Long-press on a message shouldn't pop the phone's own text menu first. */
+.bubble { -webkit-touch-callout: none; }

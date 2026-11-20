@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="common_bg">#F6F3EC</color>
+    <color name="call_bg">#0B2F2B</color>
+    <color name="common_accent">#0E5A52</color>
+</resources>

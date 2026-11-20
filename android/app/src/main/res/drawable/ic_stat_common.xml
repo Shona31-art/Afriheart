@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Afriheart's heart with its band, white, for the status bar and themed icons. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <group>
+        <clip-path android:pathData="M 12.00,21.51 C 10.35,20.25 2.10,14.82 2.10,8.50 C 2.10,5.01 4.62,2.49 7.83,2.49 C 9.77,2.49 11.22,3.55 12.00,5.20 C 12.78,3.55 14.23,2.49 16.17,2.49 C 19.38,2.49 21.90,5.01 21.90,8.50 C 21.90,14.82 13.65,20.25 12.00,21.51 Z" />
+        <path android:fillColor="#FFFFFFFF" android:fillType="evenOdd" android:pathData="M 12.00,21.51 C 10.35,20.25 2.10,14.82 2.10,8.50 C 2.10,5.01 4.62,2.49 7.83,2.49 C 9.77,2.49 11.22,3.55 12.00,5.20 C 12.78,3.55 14.23,2.49 16.17,2.49 C 19.38,2.49 21.90,5.01 21.90,8.50 C 21.90,14.82 13.65,20.25 12.00,21.51 Z M-0.43,10.74 L24.43,10.74 L24.43,11.42 L-0.43,11.42 Z M-0.43,14.62 L24.43,14.62 L24.43,15.11 L-0.43,15.11 Z" />
+    </group>
+</vector>
