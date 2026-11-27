@@ -1,3 +1,5 @@
+import java.net.URI
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -19,7 +21,7 @@ android {
         versionCode = buildNumber
         versionName = "1.0.$buildNumber"
         buildConfigField("String", "SITE_URL", "\"$siteUrl\"")
-        manifestPlaceholders["siteHost"] = java.net.URI(siteUrl).host
+        manifestPlaceholders["siteHost"] = URI(siteUrl).host
     }
 
     signingConfigs {
