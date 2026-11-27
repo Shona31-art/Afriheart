@@ -13,7 +13,7 @@ const RESEND_AFTER_MS = 45 * 1000;
 const PER_PHONE_PER_HOUR = 5;
 const PER_IP_PER_HOUR = 20;
 
-export type OtpProvider = "make" | "twilio" | "bulksms" | "test";
+export type OtpProvider = "make" | "twilio" | "bulksms" | "textbee" | "test";
 
 function secret(): string {
   const s = process.env.SESSION_SECRET;
@@ -35,6 +35,8 @@ export function otpProvider(): OtpProvider | null {
   if (process.env.MAKE_WEBHOOK_URL) return "make";
   if (process.env.TWILIO_ACCOUNT_SID) return "twilio";
   if (process.env.BULKSMS_TOKEN_ID) return "bulksms";
+  // Your own Android phone (textbee). Checked last, so adding a paid sender later takes over automatically.
+  if (process.env.TEXTBEE_API_KEY) return "textbee";
   return process.env.NODE_ENV === "production" ? null : "test";
 }
 
@@ -77,6 +79,16 @@ async function deliver(provider: OtpProvider, phone: string, code: string): Prom
       body: JSON.stringify({ to, body: message(code) }), signal: timeout,
     });
     if (!res.ok) throw new Error(`BulkSMS ${res.status}: ${(await res.text()).slice(0, 200)}`);
+    return;
+  }
+  if (provider === "textbee") {
+    // textbee: an Android phone sends the SMS from its own SIM. https://textbee.dev
+    const deviceId = process.env.TEXTBEE_DEVICE_ID?.trim();
+    const res = await fetch("https://api.textbee.dev/api/v1/gateway/send-sms", {
+      method: "POST", headers: { "x-api-key": process.env.TEXTBEE_API_KEY!, "content-type": "application/json" },
+      body: JSON.stringify({ recipients: [to], message: message(code), ...(deviceId ? { deviceId } : {}) }), signal: timeout,
+    });
+    if (!res.ok) throw new Error(`textbee ${res.status}: ${(await res.text()).slice(0, 200)}`);
   }
 }
 
