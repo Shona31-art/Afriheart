@@ -1,0 +1,66 @@
+# Builds "Afriheart Codes", the app that turns a spare Android phone into Afriheart's
+# own SMS sender for sign-in codes (android/gateway), and publishes it as a GitHub
+# release named "Afriheart Codes …" with the file afriheart-codes.apk.
+# Runs when android/gateway changes, or by hand (Actions → Afriheart Codes app → Run workflow).
+#
+# Signed with the same key as Afriheart when the ANDROID_KEYSTORE_PASSWORD secret is set;
+# otherwise with a test key (works fine, but a later signed version needs a reinstall).
+name: Afriheart Codes app
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "android/gateway/**"
+      - "android/settings.gradle.kts"
+      - ".github/workflows/sms-gateway.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sms-gateway-app
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SITE_URL: ${{ vars.AFRIHEART_SITE_URL || 'https://afriheart.vercel.app' }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.11.1"
+
+      - name: Build the app
+        working-directory: android
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: gradle --no-daemon :gateway:assembleRelease -PcommonVersionCode=${{ github.run_number }} -PcommonSiteUrl="$SITE_URL"
+
+      - name: Name the file
+        run: cp android/gateway/build/outputs/apk/release/gateway-release.apk afriheart-codes.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: afriheart-codes-apk
+          path: afriheart-codes.apk
+
+      - name: Publish the download
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="codes-${{ github.run_number }}"
+          gh release create "$tag" afriheart-codes.apk \
+            --title "Afriheart Codes (version 1.0.${{ github.run_number }})" \
+            --notes "For the spare phone that sends Afriheart's sign-in codes. Download afriheart-codes.apk on that phone and open it. Not for Afriheart members." \
+            --latest=false

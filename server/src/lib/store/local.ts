@@ -26,6 +26,7 @@ const empty = (): DB => ({
   call_signals: [],
   android_devices: [],
   phone_codes: [],
+  sms_outbox: [],
   devices: [],
   dating_profiles: [],
   az_dates: [],

@@ -35,6 +35,8 @@ function limitsFor(path: string): LimitName[] {
     [/^\/api\/status\/media$/, "upload"],
   ];
   // Call set-up messages and read receipts are frequent and tiny: size-checked but not counted.
+  // The gateway phone checks in every few seconds; it has its own secret instead.
+  if (path === "/api/sms-gateway") return [];
   if (/^\/api\/calls\/[^/]+\/signals$/.test(path) || /^\/api\/chats\/[^/]+\/(read|typing)$/.test(path)) return [];
   return [...named.filter(([re]) => re.test(path)).map(([, n]) => n), "write"];
 }

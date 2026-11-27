@@ -2,6 +2,7 @@ import "server-only";
 import { createHmac, randomInt, randomUUID, timingSafeEqual } from "node:crypto";
 import { getStore } from "./store";
 import { DomainError, normalizePhone } from "./domain";
+import { queueSms } from "./sms-gateway";
 
 // Sign-in codes sent to the person's phone. A code is 6 digits, lasts 10
 // minutes, allows 5 tries, and only a hash of it is stored. Requests are
@@ -13,7 +14,7 @@ const RESEND_AFTER_MS = 45 * 1000;
 const PER_PHONE_PER_HOUR = 5;
 const PER_IP_PER_HOUR = 20;
 
-export type OtpProvider = "make" | "twilio" | "bulksms" | "textbee" | "test";
+export type OtpProvider = "make" | "twilio" | "bulksms" | "textbee" | "phone" | "test";
 
 function secret(): string {
   const s = process.env.SESSION_SECRET;
@@ -37,6 +38,8 @@ export function otpProvider(): OtpProvider | null {
   if (process.env.BULKSMS_TOKEN_ID) return "bulksms";
   // Your own Android phone (textbee). Checked last, so adding a paid sender later takes over automatically.
   if (process.env.TEXTBEE_API_KEY) return "textbee";
+  // Afriheart's own gateway app on an Android phone (see sms-gateway.ts).
+  if ((process.env.SMS_GATEWAY_TOKEN ?? "").length >= 32) return "phone";
   return process.env.NODE_ENV === "production" ? null : "test";
 }
 
@@ -48,6 +51,10 @@ async function deliver(provider: OtpProvider, phone: string, code: string): Prom
   const to = `+${phone}`;
   const timeout = AbortSignal.timeout(10000);
   if (provider === "test") return;
+  if (provider === "phone") {
+    await queueSms(phone, message(code));
+    return;
+  }
   if (provider === "make") {
     // Same Make.com scenario style as Grace: the scenario sends it by WhatsApp or SMS.
     const res = await fetch(process.env.MAKE_WEBHOOK_URL!, {

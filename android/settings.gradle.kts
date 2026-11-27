@@ -14,3 +14,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "Afriheart"
 include(":app")
+include(":gateway")

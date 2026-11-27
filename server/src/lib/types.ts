@@ -275,6 +275,19 @@ export interface AndroidDevice {
   updated_at: string;
 }
 
+/** A sign-in text waiting for Afriheart's own gateway phone to send it (OTP sender "phone"). */
+export interface SmsOutbox {
+  id: string;
+  phone: string; // digits only, international (e.g. 27821234567)
+  body: string;
+  status: "queued" | "sending" | "sent" | "failed";
+  attempts: number;
+  reason: string | null;
+  created_at: string;
+  claimed_at: string | null;
+  sent_at: string | null;
+}
+
 export interface PhoneCode {
   id: string;
   phone: string;
@@ -644,6 +657,7 @@ export interface Tables {
   call_signals: CallSignal;
   android_devices: AndroidDevice;
   phone_codes: PhoneCode;
+  sms_outbox: SmsOutbox;
   devices: Device;
   dating_profiles: DatingProfile;
   swipes: Swipe;
