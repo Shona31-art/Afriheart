@@ -1,10 +1,11 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import * as D from "@/lib/domain";
 import { clearSession, getSessionPersonId, setSession } from "@/lib/session";
 import { requestCode, verifyCode } from "@/lib/otp";
+import { finishWhatsAppSignIn, startWhatsAppSignIn } from "@/lib/whatsapp-signin";
 import { safeNext } from "@/lib/safe-next";
 import { runPlanIntent } from "@/lib/plan-intents";
 import type { Response } from "@/lib/types";
@@ -51,12 +52,46 @@ export async function requestSignInCode(form: FormData) {
     // A banned number gets no code (and no SMS is paid for).
     const asked = D.normalizePhone(str(form, "phone"));
     if (asked && (await D.findPersonByPhone(asked))?.banned_at) throw new D.DomainError("This number can't use Afriheart. If you think that's a mistake, contact support at /support.");
-    const { phone, testCode } = await requestCode(str(form, "phone"), await clientIp());
-    target = `/signin?${new URLSearchParams({ step: "code", phone, name, next, ...(respond ? { respond } : {}), ...(testCode ? { test: testCode } : {}) })}`;
+    if (str(form, "method") === "whatsapp") {
+      const wa = await startWhatsAppSignIn(str(form, "phone"), await clientIp());
+      // Only this browser can finish the sign-in, even if someone else sees the code.
+      (await cookies()).set("wa_signin", wa.browserSecret, {
+        httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: 15 * 60,
+      });
+      target = `/signin?${new URLSearchParams({ step: "whatsapp", id: wa.id, code: wa.code, phone: wa.phone, name, next, ...(respond ? { respond } : {}) })}`;
+    } else {
+      const { phone, testCode } = await requestCode(str(form, "phone"), await clientIp());
+      target = `/signin?${new URLSearchParams({ step: "code", phone, name, next, ...(respond ? { respond } : {}), ...(testCode ? { test: testCode } : {}) })}`;
+    }
   } catch (e) {
     withError(next.startsWith("/p/") && respond ? next : back, e);
   }
   redirect(target);
+}
+
+/** Both ways of proving a number end here: make or find the person, sign in, answer the plan. */
+async function finishSignIn(phone: string, name: string, next: string, respond: Response | "") {
+  const person = await D.findOrCreatePerson({ name, phone, isGuest: false });
+  if (person.banned_at) throw new D.DomainError("This number can't use Afriheart. If you think that's a mistake, contact support at /support.");
+  await setSession(person.id, (await headers()).get("user-agent") ?? "");
+  const slug = /^\/p\/([\w-]+)$/.exec(next)?.[1];
+  if (slug && (respond === "in" || respond === "maybe" || respond === "out")) await D.respond(slug, person.id, respond);
+}
+
+/** WhatsApp step 2: their message arrived from the right number, so sign this browser in. */
+export async function finishWhatsAppSignInAction(form: FormData) {
+  const next = safeNext(str(form, "next"));
+  const name = str(form, "name");
+  const respond = str(form, "respond") as Response | "";
+  const jar = await cookies();
+  try {
+    const phone = await finishWhatsAppSignIn(str(form, "id"), jar.get("wa_signin")?.value);
+    jar.delete("wa_signin");
+    await finishSignIn(phone, name, next, respond);
+  } catch (e) {
+    withError(`/signin?${new URLSearchParams({ next, name, ...(respond ? { respond } : {}) })}`, e);
+  }
+  redirect(next);
 }
 
 /** Step 2: check the code, then sign in (and answer the plan, when joining from a link). */
@@ -67,11 +102,7 @@ export async function verifySignInCode(form: FormData) {
   const phoneIn = str(form, "phone");
   try {
     const phone = await verifyCode(phoneIn, str(form, "code"));
-    const person = await D.findOrCreatePerson({ name, phone, isGuest: false });
-    if (person.banned_at) throw new D.DomainError("This number can't use Afriheart. If you think that's a mistake, contact support at /support.");
-    await setSession(person.id, (await headers()).get("user-agent") ?? "");
-    const slug = /^\/p\/([\w-]+)$/.exec(next)?.[1];
-    if (slug && (respond === "in" || respond === "maybe" || respond === "out")) await D.respond(slug, person.id, respond);
+    await finishSignIn(phone, name, next, respond);
   } catch (e) {
     withError(`/signin?${new URLSearchParams({ step: "code", phone: phoneIn, name, next, ...(respond ? { respond } : {}) })}`, e);
   }

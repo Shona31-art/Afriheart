@@ -4,6 +4,9 @@ import { requestSignInCode, verifySignInCode } from "../actions";
 import { Notice, Skeleton } from "@/components/ui";
 import { SubmitButton } from "@/components/submit-button";
 import { formatPhone } from "@/lib/client";
+import { otpProvider } from "@/lib/otp";
+import { whatsappLink, whatsappSignInOn } from "@/lib/whatsapp-signin";
+import { WhatsAppWaiter } from "@/components/whatsapp-waiter";
 
 export const metadata = { title: "Sign in" };
 
@@ -32,6 +35,43 @@ async function SignInForm({ searchParams }: { searchParams: PageProps<"/signin">
   const get = (k: string) => (typeof sp[k] === "string" ? (sp[k] as string) : "");
   const next = get("next") || "/discover";
   const error = get("error") || undefined;
+
+  const waOn = whatsappSignInOn();
+  const smsOn = otpProvider() !== null;
+  const startAgain = `/signin?${new URLSearchParams({ next, name: get("name"), ...(get("respond") ? { respond: get("respond") } : {}) })}`;
+
+  if (get("step") === "whatsapp" && waOn && /^\d{6}$/.test(get("code"))) {
+    const phone = get("phone");
+    const code = get("code");
+    return (
+      <div className="flex flex-col gap-3">
+        <div className="card flex flex-col gap-3">
+          <Notice error={error} />
+          <p className="text-sm">Send this WhatsApp message from <strong>{formatPhone(phone)}</strong>:</p>
+          <p className="rounded-xl border border-line bg-paper px-4 py-3 text-center">
+            <span className="block text-xs text-muted">Afriheart code</span>
+            <span className="display text-3xl tracking-[0.3em]" data-wa-code={code}>{code}</span>
+          </p>
+          <a className="btn" href={whatsappLink(code)} target="_blank" rel="noopener noreferrer">Open WhatsApp</a>
+          <p className="text-xs text-muted">WhatsApp opens with the message already typed. Tap send, then come back here. It&apos;s free: we never message you back.</p>
+          <WhatsAppWaiter id={get("id")} name={get("name")} next={next} respond={get("respond")} phoneLabel={formatPhone(phone)} startAgain={startAgain} />
+        </div>
+        <div className="text-center text-sm">
+          {smsOn && (
+            <form action={requestSignInCode} className="inline">
+              <input type="hidden" name="phone" value={phone} />
+              <input type="hidden" name="name" value={get("name")} />
+              <input type="hidden" name="next" value={next} />
+              <input type="hidden" name="respond" value={get("respond")} />
+              <button className="text-accent underline" name="method" value="sms">No WhatsApp? Get an SMS code</button>
+              <span className="text-muted"> · </span>
+            </form>
+          )}
+          <a className="text-muted underline" href={startAgain}>Use a different number</a>
+        </div>
+      </div>
+    );
+  }
 
   if (get("step") === "code") {
     const phone = get("phone");
@@ -82,11 +122,18 @@ async function SignInForm({ searchParams }: { searchParams: PageProps<"/signin">
         <span className="label">Mobile number</span>
         <input className="field" name="phone" type="tel" autoComplete="tel" required placeholder="082 123 4567" />
       </label>
-      <SubmitButton pending="Sending code…">Send me a code</SubmitButton>
+      {waOn ? (
+        <>
+          <SubmitButton name="method" value="whatsapp" pending="Getting your code…">Verify with WhatsApp</SubmitButton>
+          {smsOn && <SubmitButton className="btn btn-ghost" name="method" value="sms" pending="Sending code…">Send me an SMS code instead</SubmitButton>}
+        </>
+      ) : (
+        <SubmitButton pending="Sending code…">Send me a code</SubmitButton>
+      )}
       <Link href="/support?topic=sign_in" className="text-sm font-semibold text-accent underline">Trouble signing in? Get help</Link>
       <p className="text-xs text-muted">By continuing you agree to the <a href="/terms" className="font-semibold text-accent underline">Terms</a> and <a href="/privacy" className="font-semibold text-accent underline">Privacy policy</a>. Afriheart is for people 18 and older.</p>
             <p className="text-xs text-muted">
-        We&apos;ll send a code to check it&apos;s your number. Your number is how friends find you; it&apos;s never shown publicly. You must be 18 or older to use Afriheart.
+        We check it&apos;s your number with a quick WhatsApp message or SMS code. Your number is how friends find you; it&apos;s never shown publicly. You must be 18 or older to use Afriheart.
       </p>
     </form>
   );

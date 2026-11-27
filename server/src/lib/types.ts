@@ -288,6 +288,20 @@ export interface SmsOutbox {
   sent_at: string | null;
 }
 
+/** A sign-in waiting for the person's WhatsApp message (free alternative to an SMS code). */
+export interface WaSignin {
+  id: string;
+  phone: string;
+  code: string; // shown on screen and typed into WhatsApp: not a secret on its own
+  browser_hash: string; // sha256 of a cookie only the starting browser has
+  ip: string;
+  status: "pending" | "confirmed" | "mismatch" | "hidden" | "expired" | "used";
+  hint: string | null; // last 4 digits of the number it actually came from (mismatch)
+  created_at: string;
+  expires_at: string;
+  confirmed_at: string | null;
+}
+
 export interface PhoneCode {
   id: string;
   phone: string;
@@ -658,6 +672,7 @@ export interface Tables {
   android_devices: AndroidDevice;
   phone_codes: PhoneCode;
   sms_outbox: SmsOutbox;
+  wa_signins: WaSignin;
   devices: Device;
   dating_profiles: DatingProfile;
   swipes: Swipe;
