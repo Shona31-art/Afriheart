@@ -76,6 +76,7 @@ usually connect too; for strict mobile networks, add a TURN relay (see below).
    | `ALLOW_LOCAL_STORE` | Leave unset in production. Without Supabase settings the app now refuses to start in production, instead of quietly saving to a local file that hosting wipes. Set `yes` only for a single server with a persistent disk, or for running the browser tests against `next start` |
    | `WHATSAPP_NUMBER`, `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_APP_SECRET` | Free sign-in by WhatsApp (recommended). People send "Afriheart code 123456" to your WhatsApp Business number and are signed in when Meta's webhook confirms it came from their number; Afriheart never replies, so it costs nothing. In your Meta app: WhatsApp → Configuration → Callback URL `https://<your site>/api/whatsapp/webhook`, Verify token = `WHATSAPP_VERIFY_TOKEN`, subscribe to **messages**. SMS (above) stays available as the backup |
    | `SUPER_ADMIN_PHONES` | Your own number(s), comma separated: always super admins in /admin (so you can't lock yourself out). Add everyone else in /admin → Team |
+   | `SUPER_ADMIN_PASSWORD` | Optional, 16+ characters: super admins can sign in at `/signin/admin` with their number and this password instead of a code. Tries are limited and every sign-in is logged in /admin → Activity |
    | `TEAM_PHONES` | Optional: numbers that are moderators (safety queue in /team, and /admin) without adding them in /admin |
    | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | From Supabase → Project settings → API |
    | `GEMINI_API_KEY` | Optional: AI-written plan options |

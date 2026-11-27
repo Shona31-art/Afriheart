@@ -21,7 +21,7 @@ const CAN: Record<StaffRole, Permission[]> = {
 };
 export const ROLE_LABELS: Record<StaffRole, string> = { super_admin: "Super admin", moderator: "Moderator", support: "Support" };
 
-const phones = (v: string | undefined) => (v ?? "").split(",").map((p) => normalizePhone(p.trim())).filter((p): p is string => !!p);
+export const phones = (v: string | undefined) => (v ?? "").split(",").map((p) => normalizePhone(p.trim())).filter((p): p is string => !!p);
 
 export async function staffRole(personId: string | null): Promise<StaffRole | null> {
   if (!personId) return null;

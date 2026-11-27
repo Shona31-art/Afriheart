@@ -6,6 +6,8 @@ import * as D from "@/lib/domain";
 import { clearSession, getSessionPersonId, setSession } from "@/lib/session";
 import { requestCode, verifyCode } from "@/lib/otp";
 import { finishWhatsAppSignIn, startWhatsAppSignIn } from "@/lib/whatsapp-signin";
+import { checkAdminPassword } from "@/lib/admin-login";
+import { audit } from "@/lib/admin";
 import { safeNext } from "@/lib/safe-next";
 import { runPlanIntent } from "@/lib/plan-intents";
 import type { Response } from "@/lib/types";
@@ -70,12 +72,26 @@ export async function requestSignInCode(form: FormData) {
 }
 
 /** Both ways of proving a number end here: make or find the person, sign in, answer the plan. */
-async function finishSignIn(phone: string, name: string, next: string, respond: Response | "") {
+async function finishSignIn(phone: string, name: string, next: string, respond: Response | ""): Promise<string> {
   const person = await D.findOrCreatePerson({ name, phone, isGuest: false });
   if (person.banned_at) throw new D.DomainError("This number can't use Afriheart. If you think that's a mistake, contact support at /support.");
   await setSession(person.id, (await headers()).get("user-agent") ?? "");
   const slug = /^\/p\/([\w-]+)$/.exec(next)?.[1];
   if (slug && (respond === "in" || respond === "maybe" || respond === "out")) await D.respond(slug, person.id, respond);
+  return person.id;
+}
+
+/** Super admins only: number + private admin password, no code. */
+export async function adminPasswordSignIn(form: FormData) {
+  const name = str(form, "name").trim().slice(0, 60) || "Admin";
+  try {
+    const phone = await checkAdminPassword(str(form, "phone"), str(form, "password"), await clientIp());
+    const id = await finishSignIn(phone, name, "/admin", "");
+    await audit(id, "admin_password_sign_in", "person", id, `from ${await clientIp()}`);
+  } catch (e) {
+    withError("/signin/admin", e);
+  }
+  redirect("/admin");
 }
 
 /** WhatsApp step 2: their message arrived from the right number, so sign this browser in. */

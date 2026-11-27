@@ -20,6 +20,8 @@ export const LIMITS = {
   quiz: { max: 20, windowS: 3600, msg: "That's a lot of quizzes. Try again in a while." },
   vouch: { max: 20, windowS: 86400, msg: "That's a lot of vouches for one day. Try again tomorrow." },
   checkout: { max: 20, windowS: 3600, msg: "You've started a lot of payments. Try again in an hour." },
+  adminLogin: { max: 5, windowS: 3600, msg: "Too many admin password tries. Wait an hour, or sign in with a code instead." },
+  adminLoginAll: { max: 30, windowS: 3600, msg: "Admin password sign-in is paused for an hour after many wrong tries. Sign in with a code instead." },
   support: { max: 6, windowS: 3600, msg: "You've sent a few requests already. We'll get back to you; try again in an hour if it's urgent." },
 } as const;
 
