@@ -49,6 +49,12 @@ function deny(status: number, error: string) {
 export async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
+  // The old address forwards to Afriheart's own one (NEXT_PUBLIC_APP_URL), keeping the path.
+  const home = process.env.NEXT_PUBLIC_APP_URL;
+  if (home && req.headers.get("host") === "afriheart.vercel.app" && !home.includes("afriheart.vercel.app")) {
+    return NextResponse.redirect(new URL(path + req.nextUrl.search, home), 308);
+  }
+
   // Afriheart is a paid app: after the free trial, only safety, support and account stay open.
   if (req.method !== "OPTIONS") {
     try {
