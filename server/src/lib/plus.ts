@@ -31,10 +31,10 @@ const phoneHash = (phone: string) => createHash("sha256").update(`afriheart-tria
  */
 export const trialsOn = () => process.env.PLUS_TRIAL !== "off";
 
-/** Founding members: the first FOUNDING_MEMBERS people (e.g. 1000) get FOUNDING_DAYS (default 90) instead of a week. */
+/** Founding members: the first FOUNDING_MEMBERS people (e.g. 1000) get FOUNDING_DAYS (default 30) instead of a week. */
 export function foundingConfig(): { spots: number; days: number } | null {
   const spots = Math.floor(Number(process.env.FOUNDING_MEMBERS ?? 0));
-  const days = Math.floor(Number(process.env.FOUNDING_DAYS ?? 90));
+  const days = Math.floor(Number(process.env.FOUNDING_DAYS ?? 30));
   return spots > 0 && days > 0 ? { spots, days } : null;
 }
 

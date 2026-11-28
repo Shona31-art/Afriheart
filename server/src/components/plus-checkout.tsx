@@ -9,8 +9,8 @@ import { IconBack } from "./icons";
 type Pass = { id: string; label: string; cents: number; note: string | null; days: number };
 export type Trial = { can_start: boolean; trial_until: string | null; offer_until: string | null; founding: boolean; founding_left: number | null; trial_days: number };
 
-/** 90 → "3 months", 7 → "7 days" */
-const span = (days: number) => (days % 30 === 0 && days >= 60 ? `${days / 30} months` : `${days} days`);
+/** 30 → "1 month", 90 → "3 months", 7 → "7 days" */
+const span = (days: number) => (days % 30 === 0 ? (days === 30 ? "1 month" : `${days / 30} months`) : `${days} days`);
 const rand = (cents: number) => `R${(cents / 100).toFixed(cents % 100 ? 2 : 0)}`;
 const longDate = (iso: string) => new Date(iso).toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
 const whenShort = (iso: string) => new Date(iso).toLocaleString("en-ZA", { weekday: "long", hour: "2-digit", minute: "2-digit" });
@@ -126,7 +126,7 @@ export function PlusCheckout({ until, passes, perks, available, testMode, paidId
         <div className="card flex flex-col gap-2" data-trial-start>
           {trial.founding ? (
             <>
-              <p className="font-semibold" data-founding>Founding member offer: Afriheart+ free for {span(trial.trial_days)}</p>
+              <p className="font-semibold" data-founding>Founding member offer: your first {span(trial.trial_days) === "1 month" ? "month" : span(trial.trial_days)} of Afriheart+ free</p>
               <p className="text-sm text-muted">
                 For the first people to join Afriheart. {trial.founding_left !== null && <strong>Only {trial.founding_left.toLocaleString("en-ZA")} spots left.</strong>} No card needed, and nothing is charged when it ends.
               </p>
