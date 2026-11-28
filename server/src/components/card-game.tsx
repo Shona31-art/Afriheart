@@ -102,8 +102,8 @@ export function CardGame({ chatId, meId, initial, compact = false, onDark = fals
           ))}
         </div>
         {deck && <button className={`min-h-11 self-center text-sm font-semibold underline ${onDark ? "text-white" : "text-accent"}`} onClick={() => setChoosing(false)}>Keep playing {deck.name}</button>}
-        {error && <p role="alert" className="text-sm text-danger">{error}{error.includes("Afriheart+") && <> <Link href="/plus" className="font-semibold underline">Get Afriheart+</Link></>}</p>}
-        {!game.plus && <p className={`text-xs ${muted}`}>Flirty and Future us come with Afriheart+. If one of you has it, you can both play.</p>}
+        {error && <p role="alert" className="text-sm text-danger">{error}{error.includes("membership") && <> <Link href="/plus" className="font-semibold underline">Get Afriheart+</Link></>}</p>}
+        {!game.plus && <p className={`text-xs ${muted}`}>Flirty and Future us come with an Afriheart membership.</p>}
       </section>
     );
   }

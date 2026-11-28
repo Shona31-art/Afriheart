@@ -6,7 +6,7 @@ import { PASSES, PLUS_PERKS, paymentProvider, plusUntil, trialState } from "@/li
 import { PlusCheckout } from "@/components/plus-checkout";
 import { Skeleton } from "@/components/ui";
 
-export const metadata = { title: "Afriheart+" };
+export const metadata = { title: "Membership" };
 
 export default function PlusPage({ searchParams }: PageProps<"/plus">) {
   return (
@@ -32,6 +32,7 @@ async function Content({ searchParams }: { searchParams: PageProps<"/plus">["sea
       testMode={paymentProvider() === "test"}
       paidId={typeof sp.paid === "string" ? sp.paid : null}
       cancelled={sp.cancelled === "1"}
+      locked={sp.locked === "1"}
       trial={await trialState(me.id)}
       from={typeof sp.from === "string" ? sp.from : null}
     />

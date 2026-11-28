@@ -11,7 +11,7 @@ import { shrink } from "./composer";
 
 const CATEGORIES: [string, string][] = [
   ["sign_in", "Signing in"], ["chats_calls", "Chats and calls"], ["dating", "Dating"], ["safety", "Safety (goes first)"],
-  ["payments", "Afriheart+ and payments"], ["account", "My account and data"], ["bug", "Something isn't working"], ["other", "Something else"],
+  ["payments", "Membership and payments"], ["account", "My account and data"], ["bug", "Something isn't working"], ["other", "Something else"],
 ];
 const STATUS: Record<string, string> = { open: "Waiting for the team", waiting: "The team replied", resolved: "Solved" };
 type Ticket = { id: string; subject: string; status: string; unread: boolean; updated_at: string };

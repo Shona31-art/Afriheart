@@ -53,9 +53,9 @@ export function LikesYou({ initial }: { initial: { count: number; plus: boolean;
             ))}
           </div>
           <p className="display text-2xl">{initial.count} {initial.count === 1 ? "person likes" : "people like"} you</p>
-          <p className="max-w-xs text-sm text-muted">See who, and match with them straight away, with Afriheart+. Or keep swiping: they&apos;ll show up in Discover too.</p>
+          <p className="max-w-xs text-sm text-muted">See who, and match with them straight away, with an Afriheart membership. Or keep swiping: they&apos;ll show up in Discover too.</p>
           <div className="flex gap-2">
-            <Link href="/plus" className="btn">See who with Afriheart+</Link>
+            <Link href="/plus" className="btn">Get a membership</Link>
             <Link href="/discover" className="btn btn-ghost">Keep swiping</Link>
           </div>
         </div>

@@ -70,7 +70,7 @@ export async function playCards(chatId: string, personId: string, action: CardAc
   if (action === "deck" || action === "shuffle") {
     const deck = deckById(action === "shuffle" ? game?.deck ?? "" : opts.deck ?? "");
     if (!deck) throw new DomainError("Choose a deck.");
-    if (deck.plus && !(await chatHasPlus(chatId))) throw new DomainError(`${deck.name} comes with Afriheart+. If one of you has it, you can both play.`, 402);
+    if (deck.plus && !(await chatHasPlus(chatId))) throw new DomainError(`${deck.name} comes with an Afriheart membership.`, 402);
     if (action === "shuffle" && stale) return view(chatId, game);
     const next: CardGame = { id: chatId, chat_id: chatId, deck: deck.id, seed: randomInt(1, 2 ** 31), position: 0, flipped: false, started_by: personId, updated_by: personId, updated_at: now };
     if (game) await store.update("card_games", chatId, next);

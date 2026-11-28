@@ -37,7 +37,7 @@ const A = await newPhone();
 await signIn(A, "Ayesha Khan", "082 555 9101");
 await A.goto(`${BASE}/plus`);
 await A.locator("[data-founding]").filter({ visible: true }).first().waitFor();
-ok((await A.locator("[data-founding]").filter({ visible: true }).first().innerText()).includes("3 months"), "founding offer shown: 3 months free");
+ok((await A.locator("[data-founding]").filter({ visible: true }).first().innerText()).includes("first month"), "founding offer shown: first month free");
 ok(await A.getByText("Only 2 spots left").filter({ visible: true }).first().isVisible(), "spots left shown");
 await A.screenshot({ path: `${OUT}/01-founding.png` });
 const A1 = await A.context().newPage();

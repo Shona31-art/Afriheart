@@ -64,7 +64,7 @@ describe("Afriheart+", () => {
   it("adds a pass's days once, stacks passes, and unlocks Flirty for both people in the chat", async () => {
     const a = await person("Ayanda Zulu"), b = await person("Lerato Mokoena");
     const room = (await chat.openDirectChat(a, await phoneOf(b))).id;
-    await expect(playCards(room, b, "deck", { deck: "flirty" })).rejects.toThrow("comes with Afriheart+");
+    await expect(playCards(room, b, "deck", { deck: "flirty" })).rejects.toThrow("comes with an Afriheart membership");
     expect(await plus.hasPlus(a)).toBe(false);
 
     const c1 = await plus.startCheckout(a, "week", "https://x.test");

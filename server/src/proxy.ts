@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createHash } from "node:crypto";
 import { limit, type LimitName } from "@/lib/rate-limit";
 import { DomainError } from "@/lib/domain";
+import { gate } from "@/lib/membership";
 
 // In front of every API call that changes something:
 //   1. Same-site only: requests from other websites are refused (defence in depth on top of SameSite cookies).
@@ -46,8 +47,26 @@ function deny(status: number, error: string) {
 }
 
 export async function proxy(req: NextRequest) {
-  if (req.method === "GET" || req.method === "HEAD" || req.method === "OPTIONS") return NextResponse.next();
   const path = req.nextUrl.pathname;
+
+  // Afriheart is a paid app: after the free trial, only safety, support and account stay open.
+  if (req.method !== "OPTIONS") {
+    try {
+      const g = await gate(path, req.cookies);
+      if (!g.allow) {
+        if (g.api) return NextResponse.json({ error: "Your free trial has ended. Choose a membership to keep using Afriheart.", membership: true }, { status: 402, headers: { "cache-control": "no-store" } });
+        const url = req.nextUrl.clone();
+        const [pathname, query] = g.to.split("?");
+        url.pathname = pathname;
+        url.search = query ? `?${query}` : "";
+        return NextResponse.redirect(url);
+      }
+    } catch (e) {
+      console.error("[proxy] membership check failed", e); // never lock people out because the check failed
+    }
+  }
+
+  if (!path.startsWith("/api/") || req.method === "GET" || req.method === "HEAD" || req.method === "OPTIONS") return NextResponse.next();
 
   const origin = req.headers.get("origin");
   const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
@@ -75,4 +94,5 @@ export async function proxy(req: NextRequest) {
   return NextResponse.next();
 }
 
-export const config = { matcher: "/api/:path*" };
+// Every page and API call, but not Next's own files or static files (anything with a file extension).
+export const config = { matcher: ["/((?!_next/|.*\\.[a-zA-Z0-9]+$).*)"] };

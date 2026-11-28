@@ -8,6 +8,7 @@ import { requestCode, verifyCode } from "@/lib/otp";
 import { finishWhatsAppSignIn, startWhatsAppSignIn } from "@/lib/whatsapp-signin";
 import { checkAdminPassword } from "@/lib/admin-login";
 import { audit } from "@/lib/admin";
+import { landingFor } from "@/lib/membership";
 import { safeNext } from "@/lib/safe-next";
 import { runPlanIntent } from "@/lib/plan-intents";
 import type { Response } from "@/lib/types";
@@ -100,14 +101,15 @@ export async function finishWhatsAppSignInAction(form: FormData) {
   const name = str(form, "name");
   const respond = str(form, "respond") as Response | "";
   const jar = await cookies();
+  let to = next;
   try {
     const phone = await finishWhatsAppSignIn(str(form, "id"), jar.get("wa_signin")?.value);
     jar.delete("wa_signin");
-    await finishSignIn(phone, name, next, respond);
+    to = await landingFor(await finishSignIn(phone, name, next, respond), next);
   } catch (e) {
     withError(`/signin?${new URLSearchParams({ next, name, ...(respond ? { respond } : {}) })}`, e);
   }
-  redirect(next);
+  redirect(to);
 }
 
 /** Step 2: check the code, then sign in (and answer the plan, when joining from a link). */
@@ -116,13 +118,14 @@ export async function verifySignInCode(form: FormData) {
   const name = str(form, "name");
   const respond = str(form, "respond") as Response | "";
   const phoneIn = str(form, "phone");
+  let to = next;
   try {
     const phone = await verifyCode(phoneIn, str(form, "code"));
-    await finishSignIn(phone, name, next, respond);
+    to = await landingFor(await finishSignIn(phone, name, next, respond), next);
   } catch (e) {
     withError(`/signin?${new URLSearchParams({ step: "code", phone: phoneIn, name, next, ...(respond ? { respond } : {}) })}`, e);
   }
-  redirect(next);
+  redirect(to);
 }
 
 export async function signOut() {

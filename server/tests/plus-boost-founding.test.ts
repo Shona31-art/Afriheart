@@ -32,7 +32,7 @@ describe("Afriheart+ boost", () => {
     for (let i = 0; i < 4; i++) { const id = await person("Man" + i); await profile(id, "man", "women"); others.push(id); }
     const booster = others[3];
     await noPlus(booster);
-    await expect(dating.startBoost(booster)).rejects.toThrow("part of Afriheart+");
+    await expect(dating.startBoost(booster)).rejects.toThrow("comes with an Afriheart membership");
     await getStore().update("memberships", booster, { plus_until: new Date(Date.now() + 86400_000).toISOString() });
     const on = await dating.startBoost(booster);
     expect(on.active_until).not.toBeNull();
@@ -56,7 +56,7 @@ describe("Afriheart+ undo", () => {
     await profile(him, "man", "women");
     await dating.swipe(me, him, "pass");
     await noPlus(me);
-    await expect(dating.undoPass(me)).rejects.toThrow("part of Afriheart+");
+    await expect(dating.undoPass(me)).rejects.toThrow("comes with an Afriheart membership");
     await getStore().update("memberships", me, { plus_until: new Date(Date.now() + 86400_000).toISOString() });
     const back = await dating.undoPass(me);
     expect(back.id).toBe(him);

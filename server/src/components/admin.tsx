@@ -112,7 +112,7 @@ function Dashboard({ go }: { go: (t: Tab) => void }) {
         <Tile label="Active" value={data.people.active_today} sub={`today · ${data.people.active_7d} this week`} />
         <Tile label="Matches" value={data.dating.matches_7d} sub={`this week · ${data.dating.matches_total} in total`} />
         <Tile label="Revenue" value={rand(data.plus.revenue_30d_cents)} sub={`last 30 days · ${data.plus.payments_30d} payments`} />
-        <Tile label="Afriheart+" value={data.plus.active} sub={`active · ${data.plus.on_trial} on a free trial`} />
+        <Tile label="Members" value={data.plus.active} sub={`active · ${data.plus.on_trial} on a free trial`} />
         <Tile label="Dating profiles" value={data.dating.profiles} sub={`${data.dating.verified} photo verified`} />
         <Tile label="Dates" value={data.dating.dates_met} sub="confirmed with We met" />
         <Tile label="Banned" value={data.people.banned} />
@@ -214,7 +214,7 @@ function Person({ id, perms, me, onBack, goTicket }: { id: string; perms: Perm[]
           <div className="mt-2 flex flex-wrap gap-1.5 text-xs">
             {data.banned && <span className="status bg-warm-soft text-warm-ink">Banned: {data.banned.reason}</span>}
             {data.staff_role && <span className="status status-done">Staff: {data.staff_role}</span>}
-            {data.plus && <span className="status status-done">Afriheart+ until {dayLabel(data.plus.until)}{data.plus.trial ? " (free trial)" : ""}</span>}
+            {data.plus && <span className="status status-done">Member until {dayLabel(data.plus.until)}{data.plus.trial ? " (free trial)" : ""}</span>}
             {data.dating?.verified && <span className="status status-done">Photo verified</span>}
             {data.dating?.removed && <span className="status bg-warm-soft text-warm-ink">Removed from dating</span>}
             {data.dating?.paused && <span className="status">Paused</span>}
@@ -271,7 +271,7 @@ function Person({ id, perms, me, onBack, goTicket }: { id: string; perms: Perm[]
           )}
           {can("grant_plus") && (
             <form className="flex flex-wrap items-end gap-2" onSubmit={(e) => { e.preventDefault(); act({ action: "grant_plus", days: Number(days), note }, `Added ${days} days of Afriheart+.`); }}>
-              <label className="flex flex-col gap-1 text-sm"><span className="font-semibold">Give Afriheart+</span>
+              <label className="flex flex-col gap-1 text-sm"><span className="font-semibold">Give membership days</span>
                 <select className="field py-2" value={days} onChange={(e) => setDays(e.target.value)}>{["7", "30", "90", "365"].map((d) => <option key={d} value={d}>{d} days</option>)}</select>
               </label>
               <input className="field flex-1 py-2" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Why (e.g. sorry for the payment problem)" aria-label="Reason for the gift" maxLength={200} />
@@ -448,7 +448,7 @@ type StaffRow = { id: string; name: string; phone: string; role: string; fixed: 
 const ROLES: [string, string, string][] = [
   ["support", "Support", "Answers support tickets and looks people up (numbers partly hidden)."],
   ["moderator", "Moderator", "Support, plus reports, selfie checks, banning and removing from dating."],
-  ["super_admin", "Super admin", "Everything: payments, gifts of Afriheart+, deleting accounts, announcements, the team and the log."],
+  ["super_admin", "Super admin", "Everything: payments, gifts of membership, deleting accounts, announcements, the team and the log."],
 ];
 function Team() {
   const { data, reload } = useLoad<StaffRow[]>("/api/admin/staff");

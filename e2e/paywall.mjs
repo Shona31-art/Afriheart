@@ -1,0 +1,46 @@
+// Paid app: once the trial is gone, only safety, support and account stay open.
+import { chromium } from "/opt/npm-tools/node_modules/playwright/index.mjs";
+const BASE = "http://localhost:3100";
+const ok = (c, m) => { if (!c) throw new Error("FAILED: " + m); console.log("ok -", m); };
+const browser = await chromium.launch({ executablePath: "/usr/bin/google-chrome", args: ["--no-sandbox"] });
+let p = await (await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 })).newPage();
+await p.goto(`${BASE}/signin`);
+await p.getByLabel("Your name").fill("Lerato");
+await p.getByLabel("Mobile number").fill("082 555 7101");
+await p.getByRole("button", { name: "Send me a code" }).click();
+await p.waitForURL((u) => u.searchParams.get("step") === "code");
+await p.getByLabel("Code").fill(await p.locator("[data-test-code]").getAttribute("data-test-code"));
+await p.getByRole("button", { name: "Verify" }).click();
+await p.waitForURL((u) => !u.pathname.startsWith("/signin"));
+await p.waitForTimeout(1500); console.log("after sign-in:", p.url()); await p.waitForTimeout(1500); console.log("after sign-in:", p.url());
+ok(new URL(p.url()).pathname === "/dating/profile", "a new person is sent to make their profile first");
+await p.goto(`${BASE}/discover`);
+ok(new URL(p.url()).pathname === "/dating/profile", "Discover sends them back to their profile (where the trial starts)");
+p = await p.context().newPage();
+await p.goto(`${BASE}/dating/profile`);
+await p.getByRole("region", { name: "Photos" }).getByLabel("Choose photos").setInputFiles(["/home/claude/e2e/p-ayesha.jpg"]);
+await p.getByRole("img", { name: "Main photo" }).filter({ visible: true }).first().waitFor();
+await p.getByLabel("Date of birth").fill("1996-02-02");
+await p.getByText("Woman", { exact: true }).click();
+await p.getByLabel("Area").fill("Glenwood");
+await p.getByText("Men", { exact: true }).click();
+await p.getByLabel("Your date idea").fill("Market and coffee");
+await p.getByRole("checkbox", { name: /I agree that Afriheart uses my profile/ }).check();
+await p.getByRole("button", { name: "Start meeting people" }).click();
+await p.waitForURL((u) => u.pathname === "/plus");
+ok(new URL(p.url()).searchParams.get("locked") === "1", "with no trial left, Discover is locked: sent to Membership");
+await p.locator("[data-locked]").filter({ visible: true }).first().waitFor();
+ok(true, "'Your free trial has ended' is shown");
+await p.waitForTimeout(600);
+await p.screenshot({ path: "/home/claude/e2e/boost/04-locked.png" });
+// Soft navigation through the bottom bar is locked too
+await p.getByRole("link", { name: "Chats" }).first().click();
+await p.waitForTimeout(1500);
+ok(new URL(p.url()).pathname === "/plus", "tapping Chats stays on Membership");
+// API calls are refused, safety ones still work
+const r = await p.evaluate(async () => [(await fetch("/api/dating/discover")).status, (await fetch("/api/support")).status]);
+ok(r[0] === 402 && r[1] === 200, `discover API 402, support API 200 (${r})`);
+await p.goto(`${BASE}/you`);
+ok(new URL(p.url()).pathname === "/you", "You (account) stays open");
+await browser.close();
+console.log("ALL PASSED");

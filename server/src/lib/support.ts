@@ -10,7 +10,7 @@ import type { SupportTicket } from "./types";
 // tickets, with a pop-up on Android. Safety tickets go to the top.
 
 export const CATEGORIES: Record<SupportTicket["category"], string> = {
-  sign_in: "Signing in", payments: "Afriheart+ and payments", safety: "Safety", chats_calls: "Chats and calls",
+  sign_in: "Signing in", payments: "Membership and payments", safety: "Safety", chats_calls: "Chats and calls",
   dating: "Dating", account: "My account and data", bug: "Something isn't working", other: "Something else",
 };
 const MAX_OPEN = 5;

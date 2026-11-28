@@ -8,7 +8,7 @@ export const HELP_CATEGORIES: { id: HelpCategory; label: string }[] = [
   { id: "chats_calls", label: "Chats and calls" },
   { id: "dating", label: "Dating" },
   { id: "safety", label: "Safety" },
-  { id: "payments", label: "Afriheart+ and payments" },
+  { id: "payments", label: "Membership and payments" },
   { id: "account", label: "Your account and data" },
 ];
 
@@ -76,18 +76,18 @@ export const HELP: HelpArticle[] = [
   { id: "first-date", category: "safety", q: "Tips for a safe first date", a: [
     "Meet somewhere public, tell a friend where you'll be (Share date details on the plan card), get yourself there and back, and keep chatting in Afriheart until you're comfortable sharing your number.",
   ] },
-  { id: "paid-not-active", category: "payments", q: "I paid but Afriheart+ isn't on", a: [
-    "Payfast can take a few minutes to confirm, especially with Instant EFT. Close and reopen the Afriheart+ page.",
+  { id: "paid-not-active", category: "payments", q: "I paid but my membership isn't on", a: [
+    "Payfast can take a few minutes to confirm, especially with Instant EFT. Close and reopen the Membership page.",
     "Still not on after an hour? Contact support below with the date and how you paid. We never need your card or bank details.",
   ] },
   { id: "renew", category: "payments", q: "Will I be charged again automatically?", a: [
-    "No. Afriheart+ passes are a single payment with no debit order. When a pass ends, Afriheart+ simply switches off until you buy another.",
+    "No. Memberships are a single payment with no debit order. When yours ends, Discover, chats and dates pause until you buy another. Safety tools, support and your account always stay open.",
   ] },
   { id: "refund", category: "payments", q: "Can I get a refund?", a: [
     "If something went wrong, contact support below and choose Payments. Refunds go back the way you paid, through Payfast.",
   ] },
   { id: "trial", category: "payments", q: "How does the free week work?", a: [
-    "Every phone number gets one free week of Afriheart+ when the dating profile is finished. No card is needed and nothing is charged when it ends.",
+    "Every phone number gets a free trial of Afriheart when the dating profile is finished: 7 days, or a whole month for our first 100 founding members. No card is needed and nothing is charged when it ends.",
   ] },
   { id: "delete-account", category: "account", q: "How do I delete my account?", a: [
     "You → Privacy and account → Delete my account. It deletes your profile, photos, answers and everything you sent. It can't be undone.",

@@ -62,13 +62,13 @@ async function YouContent({ searchParams }: { searchParams: PageProps<"/you">["s
         </Section>
       )}
 
-      <Section title="Afriheart+">
+      <Section title="Membership">
         <a href="/plus" className="card flex items-center justify-between gap-3 text-sm" data-plus-card>
           <span>
-            <span className="block font-semibold">{trial.trial_until ? (trial.founding ? "Founding member: Afriheart+ is on" : "Your free week of Afriheart+") : plus ? "You have Afriheart+" : trial.offer_until ? "Welcome offer: first month R29" : trial.can_start ? (trial.founding ? `Founding offer: ${trial.trial_days === 30 ? "first month" : trial.trial_days % 30 === 0 ? `${trial.trial_days / 30} months` : `${trial.trial_days} days`} of Afriheart+ free` : "Try Afriheart+ free for 7 days") : "See who likes you"}</span>
-            <span className="block text-muted">{plus ? `${trial.trial_until ? "Free until" : "Until"} ${new Date(plus).toLocaleDateString("en-ZA", { day: "numeric", month: "long" })}. Add more time any time.` : trial.offer_until ? "Instead of R59, for the next 48 hours only." : trial.can_start ? (trial.founding && trial.founding_left !== null ? `Only ${trial.founding_left.toLocaleString("en-ZA")} founding spots left. No card needed.` : "Boost, undo and see who likes you. No card needed, nothing charged after.") : "From R19 a week. Pay once with card, EFT, Capitec Pay or SnapScan. No debit order."}</span>
+            <span className="block font-semibold">{trial.trial_until ? (trial.founding ? "Founding member: your free month" : "Your free week") : plus ? "You're a member" : trial.offer_until ? "Welcome offer: first month R29" : trial.can_start ? (trial.founding ? `Founding offer: ${trial.trial_days === 30 ? "first month" : trial.trial_days % 30 === 0 ? `${trial.trial_days / 30} months` : `${trial.trial_days} days`} free` : "Try Afriheart free for 7 days") : "Your membership has ended"}</span>
+            <span className="block text-muted">{plus ? `${trial.trial_until ? "Free until" : "Until"} ${new Date(plus).toLocaleDateString("en-ZA", { day: "numeric", month: "long" })}. Add more time any time.` : trial.offer_until ? "Instead of R59, for the next 48 hours only." : trial.can_start ? (trial.founding && trial.founding_left !== null ? `Only ${trial.founding_left.toLocaleString("en-ZA")} founding spots left. No card needed.` : "No card needed, nothing charged after.") : "From R19 a week to keep matching and chatting. Pay once with card, EFT, Capitec Pay or SnapScan. No debit order."}</span>
           </span>
-          <span className="btn btn-sm shrink-0">{plus ? "Manage" : trial.can_start ? "Try free" : "Get Afriheart+"}</span>
+          <span className="btn btn-sm shrink-0">{plus ? "Manage" : trial.can_start ? "Try free" : "Join"}</span>
         </a>
       </Section>
 

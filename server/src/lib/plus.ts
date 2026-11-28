@@ -112,11 +112,12 @@ export async function trialState(personId: string): Promise<TrialState> {
 }
 
 export const PLUS_PERKS = [
-  "Boost: be seen first by people near you for 30 minutes, once a day",
+  "Discover people near you, each with a real date idea",
+  "Private, encrypted chats, voice notes and calls with your matches",
+  "Plan real dates together, right in the chat",
   "See who already likes you, and match instantly",
-  "Undo a pass you didn't mean",
-  "Flirty and Future us talking cards (unlocked for both of you)",
-  "Support a dating app made in Africa",
+  "Boost: be seen first by people near you for 30 minutes, once a day",
+  "Undo a pass you didn't mean, and every talking card deck",
 ];
 
 export type Provider = "payfast" | "test";
@@ -153,7 +154,7 @@ export async function startCheckout(personId: string, pass: string, origin: stri
   await store.insert("payments", { id, person_id: personId, pass: pass as PassId, amount_cents: plan.cents, status: "pending", provider, provider_ref: null, method: null, created_at: stamp(), paid_at: null });
   if (provider === "test") return { id, action: `/plus/test-checkout`, fields: { id } };
   const form = checkoutForm(payfastConfig()!, {
-    paymentId: id, amountCents: plan.cents, itemName: `Afriheart+ ${plan.label}`,
+    paymentId: id, amountCents: plan.cents, itemName: `Afriheart membership ${plan.label}`,
     returnUrl: `${origin}/plus?paid=${id}`, cancelUrl: `${origin}/plus?cancelled=1`, notifyUrl: `${origin}/api/plus/payfast`,
     firstName: person?.name.split(" ")[0],
   });

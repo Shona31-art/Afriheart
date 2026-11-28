@@ -498,7 +498,7 @@ export async function boostState(personId: string): Promise<BoostState> {
 /** Afriheart+: show my profile first to people near me for 30 minutes, once a day. */
 export async function startBoost(personId: string): Promise<BoostState> {
   const state = await boostState(personId);
-  if (!state.plus) throw new DomainError("Boost is part of Afriheart+.");
+  if (!state.plus) throw new DomainError("Boost comes with an Afriheart membership.");
   if (state.active_until) return state;
   if (state.next_at) throw new DomainError("You've used today's boost. The next one is ready tomorrow.");
   const me = await getProfile(personId);
@@ -513,7 +513,7 @@ export async function startBoost(personId: string): Promise<BoostState> {
 /** Afriheart+: bring back the last person I passed on (within a day). */
 export async function undoPass(personId: string): Promise<Card> {
   const { hasPlus } = await import("./plus");
-  if (!(await hasPlus(personId))) throw new DomainError("Undo is part of Afriheart+.");
+  if (!(await hasPlus(personId))) throw new DomainError("Undo comes with an Afriheart membership.");
   const store = getStore();
   const mine = (await store.list("swipes", { from_id: personId })).sort((a, b) => b.created_at.localeCompare(a.created_at));
   const last = mine[0];
