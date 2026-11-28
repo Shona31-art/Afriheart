@@ -64,3 +64,5 @@ export const IconUnread = (p: P) => <Svg {...p}><path d="M5 5h9M5 5a1 1 0 00-1 1
 export const IconPushPin = (p: P) => <Svg {...p}><path d="M9 4h6l-1 6 3 3H7l3-3zM12 13v7" /></Svg>;
 export const IconSmile = (p: P) => <Svg {...p}><circle cx="12" cy="12" r="8.5" /><path d="M8.5 14.2c.9 1.3 2.1 2 3.5 2s2.6-.7 3.5-2" /><path d="M9 9.8h.01M15 9.8h.01" strokeWidth={2.6} /></Svg>;
 export const IconClip = (p: P) => <Svg {...p}><path d="M16.5 7.5l-7.4 7.4a2 2 0 002.8 2.8l7.8-7.8a4 4 0 00-5.7-5.7L6.2 12a6 6 0 008.5 8.5l5.1-5.1" /></Svg>;
+export const IconBolt = (p: P) => <Svg {...p}><path d="M13 2L4 14h7l-1 8 9-12h-7z" /></Svg>;
+export const IconUndo = (p: P) => <Svg {...p}><path d="M9 14L4 9l5-5" /><path d="M4 9h10.5a5.5 5.5 0 010 11H11" /></Svg>;

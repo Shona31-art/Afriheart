@@ -31,6 +31,21 @@ const phoneHash = (phone: string) => createHash("sha256").update(`afriheart-tria
  */
 export const trialsOn = () => process.env.PLUS_TRIAL !== "off";
 
+/** Founding members: the first FOUNDING_MEMBERS people (e.g. 1000) get FOUNDING_DAYS (default 90) instead of a week. */
+export function foundingConfig(): { spots: number; days: number } | null {
+  const spots = Math.floor(Number(process.env.FOUNDING_MEMBERS ?? 0));
+  const days = Math.floor(Number(process.env.FOUNDING_DAYS ?? 90));
+  return spots > 0 && days > 0 ? { spots, days } : null;
+}
+
+/** How many founding spots are left (null when the offer is off). */
+export async function foundingLeft(): Promise<number | null> {
+  const cfg = foundingConfig();
+  if (!cfg) return null;
+  const used = (await getStore().list("memberships")).filter((m) => m.founding).length;
+  return Math.max(0, cfg.spots - used);
+}
+
 export async function startTrial(personId: string): Promise<boolean> {
   if (!trialsOn()) return false;
   const person = await getPerson(personId);
@@ -46,10 +61,13 @@ export async function startTrial(personId: string): Promise<boolean> {
   } catch {
     return false; // claimed at the same moment by another request
   }
+  const left = await foundingLeft();
+  const founding = left !== null && left > 0;
+  const days = founding ? foundingConfig()!.days : TRIAL_DAYS;
   const from = current && current.plus_until > at ? new Date(current.plus_until) : new Date();
-  const until = new Date(from.getTime() + TRIAL_DAYS * 86400_000).toISOString();
-  if (current) await store.update("memberships", personId, { plus_until: until, trial_until: until, updated_at: at });
-  else await store.insert("memberships", { id: personId, person_id: personId, plus_until: until, trial_until: until, updated_at: at });
+  const until = new Date(from.getTime() + days * 86400_000).toISOString();
+  if (current) await store.update("memberships", personId, { plus_until: until, trial_until: until, updated_at: at, ...(founding ? { founding: true } : {}) });
+  else await store.insert("memberships", { id: personId, person_id: personId, plus_until: until, trial_until: until, updated_at: at, ...(founding ? { founding: true } : {}) });
   return true;
 }
 
@@ -60,6 +78,12 @@ export interface TrialState {
   trial_until: string | null;
   /** The cheaper first month, while it lasts: when the offer ends. */
   offer_until: string | null;
+  /** On (or starting) the founding-member trial. */
+  founding: boolean;
+  /** Founding spots left right now (null when the offer is off). */
+  founding_left: number | null;
+  /** Length of the trial this person would get or has. */
+  trial_days: number;
 }
 
 export async function trialState(personId: string): Promise<TrialState> {
@@ -75,16 +99,23 @@ export async function trialState(personId: string): Promise<TrialState> {
     const paid = (await store.list("payments", { person_id: personId })).some((p) => p.status === "complete");
     if (end > now && !paid && !(m && m.plus_until > now)) offer = end;
   }
+  const left = await foundingLeft();
+  const founding = !!m?.founding || (!trialUntil && left !== null && left > 0);
   return {
     can_start: trialsOn() && !claimed && !trialUntil && !person?.is_guest,
     trial_until: trialUntil && trialUntil > now ? trialUntil : null,
     offer_until: offer,
+    founding,
+    founding_left: left,
+    trial_days: founding ? foundingConfig()?.days ?? TRIAL_DAYS : TRIAL_DAYS,
   };
 }
 
 export const PLUS_PERKS = [
+  "Boost: be seen first by people near you for 30 minutes, once a day",
   "See who already likes you, and match instantly",
-  "Flirty and Future us Talking cards (unlocked for both of you)",
+  "Undo a pass you didn't mean",
+  "Flirty and Future us talking cards (unlocked for both of you)",
   "Support a dating app made in Africa",
 ];
 

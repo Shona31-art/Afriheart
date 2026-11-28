@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Card } from "@/lib/dating";
 import { apiGet, apiSend } from "@/lib/client";
-import { IconCalendar, IconClose, IconEdit, IconHeart, IconMore, IconPin, IconShield, IconSparkle } from "./icons";
+import { IconBolt, IconCalendar, IconClose, IconEdit, IconHeart, IconMore, IconPin, IconShield, IconSparkle, IconUndo } from "./icons";
+import type { BoostState } from "@/lib/dating";
 import { ReportSheet } from "./report-sheet";
 import { Gentle } from "./sealed";
 import { VoicePlayer } from "./voice-player";
@@ -21,7 +22,7 @@ type Action = "like" | "pass" | "date";
  * One person at a time. Pass, like, or say yes to their date idea. Swipe left
  * or right, use the buttons, or the arrow keys.
  */
-export function Discover({ paused, answered, initialMode = "solo" }: { paused: boolean; answered: number; initialMode?: "solo" | "double" }) {
+export function Discover({ paused, answered, initialMode = "solo", boost: initialBoost }: { paused: boolean; answered: number; initialMode?: "solo" | "double"; boost: BoostState }) {
   const { on: light } = useDataLight();
   const [mode, setMode] = useState(initialMode);
   const router = useRouter();
@@ -37,6 +38,46 @@ export function Discover({ paused, answered, initialMode = "solo" }: { paused: b
   const [dragging, setDragging] = useState(false);
   const [reload, setReload] = useState(0);
   const [liking, setLiking] = useState<{ target: string; label: string; preview: string; photo?: string } | null>(null);
+  const [lastPassed, setLastPassed] = useState<string | null>(null);
+  const [boost, setBoost] = useState(initialBoost);
+  useEffect(() => {
+    if (!lastPassed) return;
+    const id = setTimeout(() => setLastPassed(null), 8000);
+    return () => clearTimeout(id);
+  }, [lastPassed]);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!boost.active_until) return;
+    const id = setInterval(() => setNow(Date.now()), 20_000);
+    return () => clearInterval(id);
+  }, [boost.active_until]);
+  const boostLeft = boost.active_until ? Math.max(0, Math.ceil((Date.parse(boost.active_until) - now) / 60_000)) : 0;
+
+  async function startBoost() {
+    if (!boost.plus) { router.push("/plus?from=boost"); return; }
+    try {
+      setBoost(await apiSend<BoostState>("/api/dating/boost", "POST"));
+      setNow(Date.now());
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }
+
+  async function undo() {
+    if (!boost.plus) { router.push("/plus?from=undo"); return; }
+    setBusy(true);
+    try {
+      const back = await apiSend<Card>("/api/dating/undo", "POST");
+      setCards((c) => [back, ...(c ?? []).filter((x) => x.id !== back.id)]);
+      setPhoto(0);
+      setLastPassed(null);
+    } catch (e) {
+      setError((e as Error).message);
+      setLastPassed(null);
+    } finally {
+      setBusy(false);
+    }
+  }
 
   useEffect(() => {
     let live = true;
@@ -55,6 +96,7 @@ export function Discover({ paused, answered, initialMode = "solo" }: { paused: b
     try {
       const r = await apiSend<{ match: { chat_id: string; name: string } | null }>("/api/dating/swipe", "POST", { to: current.id, action, ...extra });
       setLiking(null);
+      setLastPassed(action === "pass" ? current.name : null);
       setCards((c) => {
         const rest = c?.slice(1) ?? [];
         if (rest.length < 3) setReload((n) => n + 1);
@@ -86,6 +128,16 @@ export function Discover({ paused, answered, initialMode = "solo" }: { paused: b
       <header className="mb-3 flex items-center justify-between px-1">
         <h1 className="display text-3xl">Discover</h1>
         <div className="flex items-center gap-1">
+          {boost.active_until && boostLeft > 0 ? (
+            <span className="flex min-h-9 items-center gap-1 whitespace-nowrap rounded-full bg-gold-soft px-3 text-xs font-semibold text-gold-ink" data-boost-on title="Boosted: you're shown first nearby">
+              <IconBolt size={14} /> <span className="sr-only">Boosted, </span>{boostLeft} min
+            </span>
+          ) : (
+            <button className="btn btn-ghost btn-sm" onClick={startBoost} disabled={!!boost.next_at} data-boost
+              title={boost.next_at ? "You've used today's boost" : "Be seen first by people near you for 30 minutes"}>
+              <IconBolt size={16} /> {boost.next_at ? "Boost tomorrow" : "Boost"}
+            </button>
+          )}
           <Link href="/dating/likes" className="btn btn-ghost btn-sm" data-likes-link><IconHeart size={16} /> Likes you</Link>
           <Link href="/dating/safety" className="icon-btn text-muted" aria-label="Dating safety"><IconShield /></Link>
           <Link href="/dating/profile" className="icon-btn text-muted" aria-label="Edit your dating profile"><IconEdit /></Link>
@@ -237,7 +289,13 @@ export function Discover({ paused, answered, initialMode = "solo" }: { paused: b
       )}
 
       {current && (
-        <div className="mt-3 flex items-center justify-center gap-5">
+        <div className="relative mt-3 flex items-center justify-center gap-5">
+          {lastPassed && (
+            <button onClick={undo} disabled={busy} data-undo
+              className="absolute -top-14 left-1/2 flex min-h-10 -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-full bg-ink px-4 text-sm font-semibold text-paper shadow-[var(--shadow-lift)]">
+              <IconUndo size={16} /> Undo pass on {lastPassed}
+            </button>
+          )}
           <button onClick={() => answer("pass")} disabled={busy} aria-label={`Pass on ${current.name}`}
             className="flex h-16 w-16 items-center justify-center rounded-full border border-line bg-card text-muted shadow-[var(--shadow)]"><IconClose size={28} /></button>
           <button onClick={() => answer("date")} disabled={busy} aria-label={`Yes to the date with ${current.name}: ${current.date_idea}`}

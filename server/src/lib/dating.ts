@@ -258,6 +258,12 @@ export async function discover(personId: string, limit = 10): Promise<Card[]> {
   const pick = ranked.findIndex((x) => x.c.id === pickId);
   if (pick > 0) ranked.unshift(...ranked.splice(pick, 1));
   if (pick >= 0) ranked[0].c.daily_pick = true;
+  // Afriheart+ boosts: boosted people come next, straight after today's pick.
+  const nowIso = now.toISOString();
+  const head = pick >= 0 ? 1 : 0;
+  const rest = ranked.slice(head);
+  const boosted = rest.filter((x) => x.p.boosted_until && x.p.boosted_until > nowIso);
+  if (boosted.length) ranked.splice(head, rest.length, ...boosted, ...rest.filter((x) => !boosted.includes(x)));
   return withVouches(ranked.slice(0, limit).map((x) => x.c));
 }
 
@@ -459,4 +465,64 @@ export async function likesYou(personId: string): Promise<{ count: number; plus:
   const { hasPlus } = await import("./plus");
   const plus = await hasPlus(personId);
   return { count: found.length, plus, cards: plus ? await withVouches(found.map(({ p, s }) => card(p, now, me, s))) : [] };
+}
+
+
+// ---------------- Afriheart+: boost and undo ----------------
+
+export const BOOST_MINUTES = 30;
+export const BOOST_EVERY_HOURS = 24;
+
+export interface BoostState {
+  plus: boolean;
+  /** Boosted now: until when. */
+  active_until: string | null;
+  /** Used today: when the next boost is ready. */
+  next_at: string | null;
+}
+
+export async function boostState(personId: string): Promise<BoostState> {
+  const { hasPlus } = await import("./plus");
+  const [plus, me] = await Promise.all([hasPlus(personId), getProfile(personId)]);
+  const now = Date.now();
+  const until = me?.boosted_until ? Date.parse(me.boosted_until) : 0;
+  const started = until - BOOST_MINUTES * 60_000;
+  const next = started + BOOST_EVERY_HOURS * 3600_000;
+  return {
+    plus,
+    active_until: until > now ? new Date(until).toISOString() : null,
+    next_at: until && next > now && until <= now ? new Date(next).toISOString() : null,
+  };
+}
+
+/** Afriheart+: show my profile first to people near me for 30 minutes, once a day. */
+export async function startBoost(personId: string): Promise<BoostState> {
+  const state = await boostState(personId);
+  if (!state.plus) throw new DomainError("Boost is part of Afriheart+.");
+  if (state.active_until) return state;
+  if (state.next_at) throw new DomainError("You've used today's boost. The next one is ready tomorrow.");
+  const me = await getProfile(personId);
+  if (!me) throw new DomainError("Create your profile first.");
+  if (me.paused) throw new DomainError("Unpause your profile first, so people can see you.");
+  if (me.removed_at) throw new DomainError("Your dating profile isn't showing to anyone right now.");
+  const until = new Date(Date.now() + BOOST_MINUTES * 60_000).toISOString();
+  await getStore().update("dating_profiles", personId, { boosted_until: until });
+  return { plus: true, active_until: until, next_at: null };
+}
+
+/** Afriheart+: bring back the last person I passed on (within a day). */
+export async function undoPass(personId: string): Promise<Card> {
+  const { hasPlus } = await import("./plus");
+  if (!(await hasPlus(personId))) throw new DomainError("Undo is part of Afriheart+.");
+  const store = getStore();
+  const mine = (await store.list("swipes", { from_id: personId })).sort((a, b) => b.created_at.localeCompare(a.created_at));
+  const last = mine[0];
+  if (!last || last.action !== "pass") throw new DomainError("There's no pass to undo.");
+  if (Date.now() - Date.parse(last.created_at) > 24 * 3600_000) throw new DomainError("You can only undo a pass from today.");
+  const them = await visibleTo(personId, last.to_id);
+  const me = await getProfile(personId);
+  await store.remove("swipes", last.id);
+  const toMe = (await store.list("swipes", { from_id: last.to_id, to_id: personId })).find((x) => x.action !== "pass") ?? null;
+  const [c] = await withVouches([card(them, new Date(), me!, toMe)]);
+  return c;
 }

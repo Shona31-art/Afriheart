@@ -7,7 +7,10 @@ import { apiGet, apiSend } from "@/lib/client";
 import { IconBack } from "./icons";
 
 type Pass = { id: string; label: string; cents: number; note: string | null; days: number };
-export type Trial = { can_start: boolean; trial_until: string | null; offer_until: string | null };
+export type Trial = { can_start: boolean; trial_until: string | null; offer_until: string | null; founding: boolean; founding_left: number | null; trial_days: number };
+
+/** 90 → "3 months", 7 → "7 days" */
+const span = (days: number) => (days % 30 === 0 && days >= 60 ? `${days / 30} months` : `${days} days`);
 const rand = (cents: number) => `R${(cents / 100).toFixed(cents % 100 ? 2 : 0)}`;
 const longDate = (iso: string) => new Date(iso).toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
 const whenShort = (iso: string) => new Date(iso).toLocaleString("en-ZA", { weekday: "long", hour: "2-digit", minute: "2-digit" });
@@ -15,8 +18,8 @@ const whenShort = (iso: string) => new Date(iso).toLocaleString("en-ZA", { weekd
 /** Ways to pay on the secure checkout (whatever the Afriheart Payfast account has switched on). */
 const METHODS = ["Card", "Instant EFT", "Capitec Pay", "SnapScan", "Zapper", "Apple Pay & Google Pay"];
 
-export function PlusCheckout({ until, passes, perks, available, testMode, paidId, cancelled, trial: initialTrial }: {
-  until: string | null; passes: Pass[]; perks: string[]; available: boolean; testMode: boolean; paidId: string | null; cancelled: boolean; trial: Trial;
+export function PlusCheckout({ until, passes, perks, available, testMode, paidId, cancelled, trial: initialTrial, from }: {
+  until: string | null; passes: Pass[]; perks: string[]; available: boolean; testMode: boolean; paidId: string | null; cancelled: boolean; trial: Trial; from?: string | null;
 }) {
   const router = useRouter();
   const [trial, setTrial] = useState(initialTrial);
@@ -97,16 +100,22 @@ export function PlusCheckout({ until, passes, perks, available, testMode, paidId
       {checking === "failed" && <p role="alert" className="rounded-xl bg-warm-soft px-4 py-3 text-sm text-warm-ink">That payment didn&apos;t go through, and you weren&apos;t charged. Try again, or pick another way to pay.</p>}
       {cancelled && !checking && <p role="status" className="rounded-xl bg-line/50 px-4 py-3 text-sm">Payment cancelled. Nothing was charged.</p>}
 
+      {from && !plusUntil && (from === "boost" || from === "undo") && (
+        <p role="status" className="rounded-xl bg-gold-soft px-4 py-3 text-sm text-gold-ink" data-from>
+          {from === "boost" ? "Boost puts you first in front of people near you for 30 minutes. It's part of Afriheart+." : "Undo brings back someone you passed on by mistake. It's part of Afriheart+."}
+        </p>
+      )}
+
       {trial.offer_until && !plusUntil && (
         <div className="card border-brand bg-accent-soft" data-intro-offer>
-          <p className="font-semibold">Your free week has ended. Keep Afriheart+ for R29 for your first month</p>
+          <p className="font-semibold">Your free {trial.founding ? "Afriheart+" : "week"} has ended. Keep Afriheart+ for R29 for your first month</p>
           <p className="text-sm text-muted">Instead of R59. This welcome offer ends {whenShort(trial.offer_until)} and is only for you, once.</p>
         </div>
       )}
 
       {plusUntil ? (
         <div className="card" data-plus-active>
-          <p className="font-semibold">{trial.trial_until ? "Your free week of Afriheart+ is on" : "You have Afriheart+"}</p>
+          <p className="font-semibold">{trial.trial_until ? (trial.founding ? "You're a founding member: Afriheart+ is on" : "Your free week of Afriheart+ is on") : "You have Afriheart+"}</p>
           <p className="text-sm text-muted">
             {trial.trial_until
               ? `Free until ${longDate(trial.trial_until)}. Nothing is charged when it ends: no card needed, no debit order.`
@@ -115,9 +124,21 @@ export function PlusCheckout({ until, passes, perks, available, testMode, paidId
         </div>
       ) : trial.can_start && (
         <div className="card flex flex-col gap-2" data-trial-start>
-          <p className="font-semibold">Try Afriheart+ free for 7 days</p>
-          <p className="text-sm text-muted">No card needed, and nothing is charged when the week ends. One free week per phone number.</p>
-          <button className="btn" onClick={startTrial} disabled={busy}>{busy ? "Starting…" : "Start my free week"}</button>
+          {trial.founding ? (
+            <>
+              <p className="font-semibold" data-founding>Founding member offer: Afriheart+ free for {span(trial.trial_days)}</p>
+              <p className="text-sm text-muted">
+                For the first people to join Afriheart. {trial.founding_left !== null && <strong>Only {trial.founding_left.toLocaleString("en-ZA")} spots left.</strong>} No card needed, and nothing is charged when it ends.
+              </p>
+              <button className="btn" onClick={startTrial} disabled={busy}>{busy ? "Starting…" : "Claim my founding spot"}</button>
+            </>
+          ) : (
+            <>
+              <p className="font-semibold">Try Afriheart+ free for 7 days</p>
+              <p className="text-sm text-muted">No card needed, and nothing is charged when the week ends. One free week per phone number.</p>
+              <button className="btn" onClick={startTrial} disabled={busy}>{busy ? "Starting…" : "Start my free week"}</button>
+            </>
+          )}
         </div>
       )}
 

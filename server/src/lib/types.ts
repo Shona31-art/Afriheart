@@ -364,6 +364,8 @@ export interface DatingProfile {
   consent_at: string; // POPIA: explicit consent to use dating preferences
   created_at: string;
   updated_at: string;
+  /** Afriheart+ boost: shown first in Discover until this time. */
+  boosted_until?: string | null;
 }
 
 export interface Swipe {
@@ -550,6 +552,8 @@ export interface Membership {
   /** When the free trial ends (set once, when it starts). */
   trial_until?: string | null;
   updated_at: string;
+  /** Joined as one of the first FOUNDING_MEMBERS: a longer free trial. */
+  founding?: boolean;
 }
 
 /** One free trial per phone number (id = SHA-256 of the number), kept even after an account is deleted. */

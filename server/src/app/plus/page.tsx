@@ -33,6 +33,7 @@ async function Content({ searchParams }: { searchParams: PageProps<"/plus">["sea
       paidId={typeof sp.paid === "string" ? sp.paid : null}
       cancelled={sp.cancelled === "1"}
       trial={await trialState(me.id)}
+      from={typeof sp.from === "string" ? sp.from : null}
     />
   );
 }

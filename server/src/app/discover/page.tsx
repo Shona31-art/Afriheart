@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { getSessionPersonId } from "@/lib/session";
 import { getPerson } from "@/lib/domain";
-import { getProfile } from "@/lib/dating";
+import { boostState, getProfile } from "@/lib/dating";
 import { Discover } from "@/components/discover";
 import { Skeleton } from "@/components/ui";
 import { answeredCount } from "@/lib/compatibility";
@@ -23,5 +23,5 @@ async function Content({ searchParams }: { searchParams: PageProps<"/discover">[
   if (!me) redirect("/signin?next=/discover");
   const profile = await getProfile(me.id);
   if (!profile) redirect("/dating/profile");
-  return <Discover key={mode} paused={profile.paused} answered={answeredCount(profile.answers)} initialMode={mode} />;
+  return <Discover key={mode} paused={profile.paused} answered={answeredCount(profile.answers)} initialMode={mode} boost={await boostState(me.id)} />;
 }
