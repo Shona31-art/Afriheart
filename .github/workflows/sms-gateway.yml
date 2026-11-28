@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      SITE_URL: ${{ vars.AFRIHEART_SITE_URL || 'https://afriheart.vercel.app' }}
+      SITE_URL: ${{ vars.AFRIHEART_SITE_URL || 'https://afriheart.gracebound.stream' }}
     steps:
       - uses: actions/checkout@v5
 

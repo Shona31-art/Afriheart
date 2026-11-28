@@ -5,7 +5,7 @@ plugins {
 
 // "Afriheart Codes": turns a spare Android phone into Afriheart's own SMS sender for
 // sign-in codes. Built by .github/workflows/sms-gateway.yml.
-val siteUrl = (findProperty("commonSiteUrl") as String?)?.trimEnd('/')?.ifBlank { null } ?: "https://afriheart.vercel.app"
+val siteUrl = (findProperty("commonSiteUrl") as String?)?.trimEnd('/')?.ifBlank { null } ?: "https://afriheart.gracebound.stream"
 val buildNumber = ((findProperty("commonVersionCode") as String?) ?: "1").toInt()
 val keystorePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
 
