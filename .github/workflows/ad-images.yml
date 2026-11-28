@@ -1,0 +1,40 @@
+# Makes the ad pictures in tools/ad-images with Vercel AI Gateway.
+# Needs the AI_GATEWAY_API_KEY repository secret. Run by hand: Actions → Ad images → Run workflow.
+name: Ad images
+
+on:
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "Only these pictures (comma separated names), or empty for all"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  make:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+      - name: Make the pictures
+        working-directory: tools/ad-images
+        env:
+          AI_GATEWAY_API_KEY: ${{ secrets.AI_GATEWAY_API_KEY }}
+          ONLY: ${{ inputs.only }}
+        run: |
+          npm init -y >/dev/null
+          npm install --no-audit --no-fund ai@latest >/dev/null
+          node generate.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ad-images
+          path: tools/ad-images/out/
+          if-no-files-found: ignore
+          retention-days: 7
